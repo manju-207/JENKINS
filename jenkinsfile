@@ -1,0 +1,33 @@
+pipeline {
+  agent any
+  
+  stages {
+    stage('Hello') {
+      steps {
+        echo 'Hello world'
+      }
+    }
+
+    stage('Authenticate with AWS ECR') {
+      steps {
+        script {
+          sh 'aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 521503820723.dkr.ecr.us-east-1.amazonaws.com'
+        }
+      }
+    }
+
+    stage('Docker Build and Push') {
+      steps {
+        script {
+          sh '''
+            echo 'Building Docker Image...'
+            docker build -t manju:latest .
+            docker tag manju:latest 521503820723.dkr.ecr.us-east-1.amazonaws.com/manju:latest
+            echo 'Pushing Docker Image to AWS ECR...'
+            docker push 521503820723.dkr.ecr.us-east-1.amazonaws.com/manju:latest
+          '''
+        }
+      }
+    }
+  }
+}
